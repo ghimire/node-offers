@@ -1,0 +1,384 @@
+<% include header %>
+		<style>
+		
+		.prev_containerfile1{
+			overflow: auto;
+		  	width: 210px;
+		  	height: 200px;
+		}
+		
+		.prev_thumbfile1{
+		 	height: 200px;
+		}
+		
+		.prev_containerfile2{
+			overflow: auto;
+		  	width: 315px;
+		  	height: 145px;
+		}
+		
+		.prev_thumbfile2{
+		 	height: 145px;
+		}
+		</style>
+
+		<div id="offer-page" class="container">
+			<div class="span5">
+				<h2 class="pull-left" style="color: #0099CC"><i class="icon-gift"></i> Offers</h2>
+<!-- 				<img class="pull-right" style="margin-top: 30px; display: none" src='/img/loader.gif' data-bind="visible: loadingOffers || loadingVendors" /> -->
+				<i class="pull-right icon-spinner icon-spin icon-3x" style="color: #33B5E5;margin-top: 10px; display: none" data-bind="visible: loadingVendors() || loadingOffers()" /></i>
+				<div class="clearfix"></div>
+				
+				<div style="display: none; padding: 10px 0px 10px 0px; min-width: 380px;" class="span5 alert alert-info" data-bind="visible: loadingVendors() === false">
+					<form class="form-horizontal" style="margin-bottom: 0">
+						<fieldset>			
+							<div class="form-group" style="margin-bottom: 0px">
+								<div style="padding-left: 20px">
+									<select id="sVendor" class="form-control" data-bind="options: vendors, optionsText: 'Vendor_Name', value: dummyVendor, optionsCaption: 'Choose Vendor...'"></select> 
+									or <a class="btn" data-bind='click: creatingVendor'><i class="muted icon-plus icon-large"></i> Add Vendor</a>
+									<span data-bind="visible: canCreateOffer" class="pull-right" style="padding-right: 20px"><a style="text-decoration: none; cursor: pointer" title="View Vendor Information" class="muted" data-bind="click: function(){ updateDisplay('vendorDisplaying', true); }"><i class="icon-eye-open icon-2x"></i></a></span>
+								</div>
+							</div>
+						</fieldset>
+					</form>
+				</div>
+				
+				<div class="span5">
+					<a data-bind="visible: canCreateOffer,click: creatingOffer" class="btn btn-success pull-right" title="Add New Offer" style="display: none; text-decoration: none; cursor: pointer"><i style="width: 85px" class="icon-plus icon-small"></i> New Offer</a>
+					<a data-bind="visible: canCreateOffer,click: creatingSpecialOffer" class="btn btn-info pull-right" title="Add Special Offer" style="display: none; text-decoration: none; cursor: pointer; margin-right: 10px"><i style="width: 85px" class="icon-plus icon-small"></i> Special</a>
+					<input type="text" class="search-query pull-left" data-bind="visible: offers().length, value: search, valueUpdate: 'keyup'" style="display: none;" placeholder="Search Offer">
+					<hr data-bind="visible: canCreateOffer" style="display: none; height: 1px"/>
+					<div class="clearfix"></div>
+				</div>
+				
+				<div id="tables" class="span5" data-bind="visible: !(loadingOffers())" style="display: none">
+					<table class="table table-hover table-condensed" style="padding-top: 0px; padding-bottom: 0px">
+					   <tbody data-bind="foreach: pagedList">
+					        <tr data-bind="click: $parent.displayOffer">
+								<td class="offerTitle" style="cursor: pointer; border-top: none">
+									<img style="padding-top: 10px; padding-left: 5px; height: 50px; width: 50px;" data-bind="attr: {src: $data.Offer_Image }" />
+									<span style="padding-top: 10px; padding-left: 5px" data-bind="text: $data.Offer_Title"></span>
+								</td>
+								<td class="buttons" width="20px" style="vertical-align:middle; border-top: none">
+					                <a style="vertical-align:middle" href="#"><i class="icon-chevron-right"></i></a>
+					            </td>
+					        </tr>
+					    </tbody>
+					</table>
+					
+					<div data-bind="visible: offers().length">
+						<div class="muted">Showing 
+							<span data-bind="text: (pageIndex() + 1) + '/' + (maxPageIndex() + 1)"></span>
+							<span class="pull-right" data-bind="text: offers().length + ' item(s)'"></span>
+						</div>
+						
+						<ul class="pager">
+						  <li data-bind="css: { disabled: pageIndex() === 0 }" class="previous">
+						    <a href="#" data-bind="click: previousPage">Previous</a>
+						  </li>
+						  <li data-bind="css: { disabled: pageIndex() === maxPageIndex() }" class="next">
+						   <a href="#" data-bind="click: nextPage">Newer</a>
+						  </li>
+						</ul>
+					</div>
+					
+				</div>
+				
+			</div>
+			
+			<div class="span6" style="margin-top: 0px">
+				<div data-bind="click: clearMsg" class="span5 pull-right" style="min-height: 70px" id="alertbox"></div>
+			
+				<div class="span2 pull-right">
+					<a style="display: none; cursor: pointer; text-decoration: none; color: steelblue" data-bind="visible: vendorDisplaying, click: function(){ updateDisplay('vendorUpdating', true); }" title="Edit"><i class="muted icon-edit icon-3x"></i></a>
+					<a style="display: none; cursor: pointer; text-decoration: none; color: steelblue" data-bind="visible: offerDisplaying, click: function() { updateDisplay('offerUpdating', true); }" title="Edit"><i class="muted icon-edit icon-3x"></i></a>
+					
+					<a style="display: none; cursor: pointer; text-decoration: none; color: firebrick; opacity: 0.7; padding-left: 20px;" data-bind="visible: vendorDisplaying, click: deleteVendor" title="Delete"><i class="icon-trash icon-3x"></i></a>
+					<a style="display: none; cursor: pointer; text-decoration: none; color: firebrick; opacity: 0.7; padding-left: 20px;" data-bind="visible: offerDisplaying, click: deleteOffer" title="Delete"><i class="icon-trash icon-3x"></i></a>
+					
+				</div>
+				
+				<div class="clearfix"></div>
+				<div data-bind="visible: vendorUpdating, with: selectedVendor" style="display: none">
+					<form class="form-horizontal" enctype="multipart/form-data" id="vendorForm">
+						<fieldset>
+							<div style="margin-left: 50px">
+								<legend>Vendor</legend>						
+							</div>
+						
+							<div class="control-group">
+								<label class="control-label" for="input01">Vendor Name<sup style="font-size: 15px; color: #f00">*</sup></label>
+								<div class="controls">
+									<input required autofocus placeholder="Some Company" class="input-xlarge" title="Vendor Name" type="text" name="Vendor_Name" data-bind="value: $data.Vendor_Name">
+								</div>
+							</div>
+									
+							<div class="control-group">
+								<label class="control-label" for="input01">Vendor Address</label>
+								<div class="controls">
+									<input placeholder="75th Avenue" class="input-xlarge" type="text" pattern=".{3,}" title="Vendor Address" name="Vendor_Vicinity" data-bind="value: $data.Vendor_Vicinity">
+								</div>
+							</div>
+
+							<div class="control-group">
+								<label class="control-label" for="input01">Vendor Logo</label>
+								<div class="controls" id="vendorLogoContainer">
+									<input onchange="javascript: vendorLogoChange(this)" id="Vendor_Logo" type="file" name="Vendor_Logo" title="Vendor Logo" />
+								</div>
+							</div>
+
+							<div class="control-group">
+								<label class="control-label" for="input01">&nbsp;</label>
+								<div class="controls">
+									<img id="vendorLogoPreview" title="Vendor Logo" data-bind="attr: {src: $data.Vendor_Logo}" style="border: 1px dotted #c0c0c0; width: 305px; height: 145px;" />
+								</div>
+							</div>	
+
+							<div class="control-group">
+								<label class="control-label" for="input01">Vendor Phone</label>
+								<div class="controls">
+									<input placeholder="+91-1234567890" class="input-xlarge" pattern=".{10,}" title="Vendor Phone" type="text" name="Vendor_Phone" data-bind="value: $data.Vendor_Phone">
+								</div>
+							</div>
+							
+							<div class="control-group">
+								<label class="control-label" for="input01">Vendor Email</label>
+								<div class="controls">
+									<input placeholder="john.doe@example.org" class="input-xlarge" pattern=".{5,}" title="Vendor Email" type="email" name="Vendor_Email" data-bind="value: $data.Vendor_Email">
+								</div>
+							</div>
+							
+							<div class="control-group">
+								<label class="control-label" for="input01">Vendor Website</label>
+								<div class="controls">
+									<input placeholder="http://www.example.org" class="input-xlarge" pattern=".{10,}" title="Vendor Website" type="url" name="Vendor_Website" data-bind="value: $data.Vendor_Website">
+								</div>
+							</div>														
+
+							<div class="control-group">
+								<label class="control-label"></label>
+								<div class="controls">
+									<button id="vendorSaveButton" class="btn btn-primary" data-bind="click: $parent.uploadVendor" ><i class="icon-ok icon-large"></i> Save</button>
+									<button id="vendorCancelButton" class="btn btn-danger" data-bind="click: $parent.hideVendor"><i class="icon-remove icon-large"></i> Cancel</button>
+								</div>
+							</div>
+
+						</fieldset>
+					</form>
+				</div>		
+			
+				<div data-bind="visible: offerUpdating, with: selectedOffer" style="display: none">
+					<form class="form-horizontal" enctype="multipart/form-data" id="offerForm">
+						<fieldset>
+							<div style="margin-left: 50px">
+								<legend>Offer</legend>
+							</div>
+							
+							<div class="control-group">
+								<label class="control-label" for="input01">Offer Title<sup style="font-size: 15px; color: #f00">*</sup></label>
+								<div class="controls">
+									<input required autofocus placeholder="Cool Gadget X" class="input-xlarge" title="Offer Title" type="text" name="Offer_Title" data-bind="value: $data.Offer_Title">
+								</div>
+							</div>
+									
+							<div class="control-group">
+								<label class="control-label" for="input01">Offer Description</label>
+								<div class="controls">
+									<input placeholder="Brief description" class="input-xlarge" type="text" pattern=".{5,}" title="Offer Description" name="Offer_Description" data-bind="value: $data.Offer_Description">
+								</div>
+							</div>
+
+							<div class="control-group">
+								<label class="control-label" for="input01">Offer Image<sup style="font-size: 15px; color: #f00">*</sup></label>
+								<div class="controls" id="offerImageContainer">
+									<input required onchange="javascript: offerImageChange(this)" id="Offer_Image" type="file" name="Offer_Image" title="Offer Image"/>
+								</div>
+							</div>
+
+							<div class="control-group">
+								<label class="control-label" for="input01">&nbsp;</label>
+								<div class="controls" style="height: 200px; min-width: 200px" id="offerImagePreviewContainer">
+									<img id="offerImagePreview" data-bind="attr: {src: $data.Offer_Image || 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs='}" title="Offer Image" />
+								</div>
+							</div>	
+	
+							<div class="control-group form-group">
+								<label class="control-label" for="input01">Badge Text</label>
+								<div class="controls">
+									<select class="form-control input-medium" name="Offer_Badge_Text" data-bind="value: $data.Offer_Badge_Text">
+										<option value="New Offer">New Offer</option>
+										<option value="Limited">Limited</option>
+										<option value="Exclusive">Exclusive</option>
+										<option value="Special">Special</option>
+										<option value="New Arrival">New Arrival</option>
+									</select>
+								</div>
+							</div>
+
+							<div class="control-group form-group">
+								<label class="control-label" for="input01">Discount</label>
+								<div class="controls">
+									<select class="form-control input-mini" name="Offer_Discount_Type" data-bind="value: $data.Offer_Discount_Type">
+									  <option value="currency">$ </option>
+									  <option value="percentage">%</option>
+									</select>									  
+
+									<div class="input-append">
+									  <input placeholder="0.00" class="input-mini" id="appendedPrependedInput" type="number" min="1" name="Offer_Discount_Value" data-bind="value: $data.Offer_Discount_Value">
+									  <span class="add-on">Off</span>
+									</div>									
+								</div>
+							</div>
+
+							<div class="form-group control-group">
+								<label class="control-label" for="input01">Category</label>
+								<div class="controls">
+									<select id="offerCategory" class="form-control input-large" name="Offer_Category" data-bind="value: $parent.Offer_Category, options: $parent.availableCategories">
+									</select>
+								</div>
+							</div>
+
+							<div class="control-group">
+								<label class="control-label" for="input01">Extra Info</label>
+								<div class="controls">
+									<textarea placeholder="Any other information" class="input-xlarge" name="Offer_Extras" pattern=".{3,}" title="Offer Extras" data-bind="value: $data.Offer_Extras"></textarea>
+									<p class="help-block"><span style="color: #f00">*</span> - Required Fields</p>
+								</div>
+							</div>
+							
+							<div class="control-group">
+								<label class="control-label"></label>
+								<div class="controls">
+									<button id="offerSaveButton" class="btn btn-primary" data-bind="click: $parent.uploadOffer" ><i class="icon-ok icon-large"></i> Save</button>
+									<button id="offerCancelButton" class="btn btn-danger" data-bind="click: $parent.hideOffer"><i class="icon-remove icon-large"></i> Cancel</button>
+								</div>
+							</div>
+	
+						</fieldset>
+					</form>
+				</div>
+			
+				<div data-bind="visible: vendorDisplaying, with: selectedVendor" style="display: none">
+					<form class="form-horizontal" enctype="multipart/form-data" id="vendorDisplayForm">
+						<fieldset>
+							<div class="control-group">
+								<label class="control-label" for="input01">Vendor Name</label>
+								<div class="controls" style="font-size: 20px; margin-top: 5px; color: #33B5E5">
+									<label style="font-size: 16px"  data-bind="text: $data.Vendor_Name"></label>
+								</div>
+							</div>
+									
+							<div class="control-group">
+								<label class="control-label" for="input01">Vendor Address</label>
+								<div class="controls" style="margin-top: 5px">
+									<label data-bind="text: $data.Vendor_Vicinity"></label>
+								</div>
+							</div>
+
+							<div class="control-group">
+								<label class="control-label" for="input01">&nbsp;</label>
+								<div class="controls" style="margin-top: 5px; width: 305px; height: 145px; border: 1px dotted #c0c0c0;">
+									<img id="vendorLogoPreview" data-bind="attr: {src: $data.Vendor_Logo}" style="width: 305px; height: 145px;" />
+								</div>
+							</div>	
+
+							<div class="control-group">
+								<label class="control-label" for="input01">Vendor Phone</label>
+								<div class="controls" style="margin-top: 5px">
+									<label data-bind="text: $data.Vendor_Phone"></label>
+								</div>
+							</div>
+							
+							<div class="control-group">
+								<label class="control-label" for="input01">Vendor Email</label>
+								<div class="controls" style="margin-top: 5px">
+									<label data-bind="text: $data.Vendor_Email"></label>
+								</div>
+							</div>
+							
+							<div class="control-group">
+								<label class="control-label" for="input01">Vendor Website</label>
+								<div class="controls" style="margin-top: 5px">
+									<label data-bind="text: $data.Vendor_Website"></label>
+								</div>
+							</div>
+							
+							<div class="pull-right"><a style="text-decoration: none; cursor: pointer" data-bind="click: function() { $parent.vendorDisplaying(false); }"><i class="muted icon-remove"></i> Close</a></div>						
+
+						</fieldset>
+					</form>
+				</div>				
+			
+				<div data-bind="visible: offerDisplaying, with: selectedOffer" style="display: none">
+					<form class="form-horizontal" id="offerDisplayForm">
+						<fieldset>
+							<div class="control-group">
+								<label class="control-label" for="input01">Offer Title</label>
+								<div class="controls" style="margin-top: 5px; color: #33B5E5">
+									<label style="font-size: 16px" data-bind="text: $data.Offer_Title || 'N/A' "></label>
+								</div>
+							</div>
+									
+							<div class="control-group">
+								<label class="control-label" for="input01">Offer Description</label>
+								<div class="controls" style="margin-top: 5px">
+									<label data-bind="text: $data.Offer_Description || 'N/A'"></label>
+								</div>
+							</div>
+
+							<div class="control-group">
+								<label class="control-label" for="input01">&nbsp;</label>
+								<div class="controls" style="margin-top: 5px;">
+									<img data-bind="attr: {src: $data.Offer_Image || 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs='}"/>
+								</div>
+							</div>	
+	
+							<div class="control-group">
+								<label class="control-label" for="input01">Badge Text</label>
+								<div class="controls" style="margin-top: 5px">
+									<label data-bind="text: ($data.Offer_Badge_Text || 'N/A').replace('_',' ') "></label>
+								</div>
+							</div>
+
+							<div class="form-group control-group">
+								<label class="control-label" for="input01">Discount</label>
+								<div class="controls">
+									<select disabled class="form-control input-mini" data-bind="value: $data.Offer_Discount_Type">
+									  <option value="currency">$ </option>
+									  <option value="percentage">%</option>
+									</select>									  
+
+									<div class="input-append">
+									  <input disabled placeholder="0.00" class="input-mini" id="appendedPrependedInput" type="text" name="Offer_Discount_Value" data-bind="value: $data.Offer_Discount_Value || '0.00'">
+									  <span class="add-on">Off</span>
+									</div>									
+								</div>
+							</div>
+
+							<div class="control-group">
+								<label class="control-label" for="input01">Category</label>
+								<div class="controls" style="margin-top: 5px">
+									<label data-bind="text: ($data.Offer_Category || 'N/A')"></label>
+								</div>
+							</div>
+
+							<div class="control-group">
+								<label class="control-label" for="input01">Extra Info</label>
+								<div class="controls" style="margin-top: 5px">
+									<p data-bind="text: nl2br($data.Offer_Extras || 'N/A')"></p>
+								</div>
+							</div>
+							
+							<div class="pull-right"><a style="text-decoration: none; cursor: pointer" data-bind="click: function() { $parent.offerDisplaying(false); }"><i class="muted icon-remove icon-large"></i> Close</a></div>
+						</fieldset>
+					</form>
+				</div>			
+			
+
+			</div>
+			
+		</div>	
+
+<!-- <script type="text/javascript" src="/js/vendor/jquery.preimage.js"></script>		 -->
+<script type="text/javascript" src="/js/offer.js"></script>		
+<% include footer %>
