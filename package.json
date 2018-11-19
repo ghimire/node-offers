@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "express": "3.0.6",
+    "express": ">=3.11.0",
     "validator": "*",
     "mongoose": "*",
     "underscore": "*",
